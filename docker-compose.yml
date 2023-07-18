@@ -1,0 +1,73 @@
+version: '3.1'
+
+services:
+  py_client_sir:
+    build: './05-client-py'
+    container_name: client-py
+    restart: always
+    volumes:
+      - "./05-client-py/src:/src"
+    depends_on:
+      - py_server_sir
+    ports:
+      - "8095:80"
+
+  py_server_sir:
+    build: './04-server-py'
+    container_name: server-py
+    restart: always
+    volumes:
+      - "./04-server-py/src:/src"
+    depends_on:
+      - mysql_server_sir
+    ports:
+      - "50006:5000"
+      - "8094:80"
+
+  c_client_sir:
+    build: './03-client-c'
+    container_name: client-c
+    restart: always
+    volumes:
+      - "./03-client-c/src:/src"
+    depends_on:
+      - c_server_sir
+    ports:
+      - "8093:80"
+
+  c_server_sir:
+    build: './02-server-c'
+    container_name: server-c
+    restart: always
+    volumes:
+      - "./02-server-c/src:/src"
+    depends_on:
+      - mysql_server_sir
+    ports:
+      - "50008:5000"
+      - "8092:80"
+
+  mysql_server_sir:
+    build: './01-mysql'
+    container_name: server-mysql
+    restart: always
+    volumes:
+      - "./01-mysql/src/sir_db.sql:/docker-entrypoint-initdb.d/init_1.sql"
+    command: --default-authentication-plugin=mysql_native_password
+    ports:
+      - "30001:3306"
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: pmb
+    depends_on:
+      - mysql_server_sir
+    environment:
+      PMB_HOST: mysql_server_sir
+      PMB_PORT: 3306
+      PMB_ARBITRARY: 1
+    restart: always
+    ports:
+      - 8081:80
+    volumes:
+     - "./01-mysql/src:/src/"
